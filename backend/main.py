@@ -4,6 +4,7 @@ from pydantic import BaseModel
 from google import genai
 from transformers import pipeline
 from dotenv import load_dotenv
+import httpx
 import os
 
 load_dotenv()
@@ -25,18 +26,36 @@ sentiment_analyzer = pipeline(
     model="distilbert-base-uncased-finetuned-sst-2-english"
 )
 
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+
 class Message(BaseModel):
     text: str
 
-SYSTEM_PROMPT = """You are a compassionate mental health support chatbot. 
-Your role is to:
-- Listen empathetically to users
-- Provide emotional support and encouragement
-- Suggest healthy coping strategies
-- Never diagnose or replace professional help
-- Always recommend professional help for serious issues
-- Keep responses concise, warm and supportive
-"""
+SYSTEM_PROMPT = """You are a compassionate mental health support chatbot.
+Your role is to listen empathetically, provide emotional support,
+suggest healthy coping strategies, and always recommend professional
+help for serious issues. Keep responses concise and warm."""
+
+async def save_to_supabase(user_message, bot_response, sentiment, confidence):
+    try:
+        async with httpx.AsyncClient() as http:
+            await http.post(
+                f"{SUPABASE_URL}/rest/v1/chat_history",
+                headers={
+                    "apikey": SUPABASE_KEY,
+                    "Authorization": f"Bearer {SUPABASE_KEY}",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "user_message": user_message,
+                    "bot_response": bot_response,
+                    "sentiment": sentiment,
+                    "confidence": confidence,
+                }
+            )
+    except Exception as e:
+        print(f"Supabase error: {e}")
 
 @app.get("/")
 def home():
@@ -44,24 +63,27 @@ def home():
 
 @app.post("/chat")
 async def chat(message: Message):
-    sentiment_result = sentiment_analyzer(message.text)[0]
-    sentiment = sentiment_result["label"]
-    score = round(sentiment_result["score"] * 100, 2)
+    try:
+        sentiment_result = sentiment_analyzer(message.text)[0]
+        sentiment = sentiment_result["label"]
+        score = round(sentiment_result["score"] * 100, 2)
 
-    prompt = f"""{SYSTEM_PROMPT}
-    
-User's emotional state detected: {sentiment} (confidence: {score}%)
-User message: {message.text}
+        prompt = SYSTEM_PROMPT + "\nUser emotional state: " + sentiment + "\nUser message: " + message.text + "\nRespond with empathy."
 
-Respond with empathy based on their emotional state."""
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=prompt
+        )
 
-    response = client.models.generate_content(
-        model="gemini-2.5-flash",
-        contents=prompt
-    )
-    
-    return {
-        "response": response.text,
-        "sentiment": sentiment,
-        "confidence": score
-    }
+        await save_to_supabase(message.text, response.text, sentiment, score)
+
+        return {
+            "response": response.text,
+            "sentiment": sentiment,
+            "confidence": score
+        }
+    except Exception as e:
+        print(f"FULL ERROR: {e}")
+        import traceback
+        traceback.print_exc()
+        raise
