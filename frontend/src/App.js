@@ -24,7 +24,7 @@ function App() {
     setInput("");
     setLoading(true);
     try {
-      const res = await axios.post("http://127.0.0.1:8080/chat", {
+      const res = await axios.post("https://mental-health-chatbot-q8i3.onrender.com/chat", {
         text: input,
       });
       const botMessage = {
