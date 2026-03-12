@@ -2,7 +2,6 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from google import genai
-from transformers import pipeline
 from dotenv import load_dotenv
 import httpx
 import os
@@ -21,11 +20,6 @@ app.add_middleware(
 
 client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
-sentiment_analyzer = pipeline(
-    "sentiment-analysis",
-    model="distilbert-base-uncased-finetuned-sst-2-english"
-)
-
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 
@@ -36,6 +30,19 @@ SYSTEM_PROMPT = """You are a compassionate mental health support chatbot.
 Your role is to listen empathetically, provide emotional support,
 suggest healthy coping strategies, and always recommend professional
 help for serious issues. Keep responses concise and warm."""
+
+def simple_sentiment(text):
+    negative_words = ["sad", "anxious", "stressed", "depressed", "lonely", "hopeless", "worried", "scared", "angry", "upset", "terrible", "awful", "horrible", "miserable"]
+    positive_words = ["happy", "good", "great", "excited", "wonderful", "amazing", "fantastic", "joy", "blessed", "grateful", "love", "better", "hopeful"]
+    text_lower = text.lower()
+    neg_count = sum(1 for word in negative_words if word in text_lower)
+    pos_count = sum(1 for word in positive_words if word in text_lower)
+    if neg_count > pos_count:
+        return "NEGATIVE", 85.0
+    elif pos_count > neg_count:
+        return "POSITIVE", 85.0
+    else:
+        return "NEUTRAL", 70.0
 
 async def save_to_supabase(user_message, bot_response, sentiment, confidence):
     try:
@@ -63,27 +70,19 @@ def home():
 
 @app.post("/chat")
 async def chat(message: Message):
-    try:
-        sentiment_result = sentiment_analyzer(message.text)[0]
-        sentiment = sentiment_result["label"]
-        score = round(sentiment_result["score"] * 100, 2)
+    sentiment, score = simple_sentiment(message.text)
 
-        prompt = SYSTEM_PROMPT + "\nUser emotional state: " + sentiment + "\nUser message: " + message.text + "\nRespond with empathy."
+    prompt = SYSTEM_PROMPT + "\nUser emotional state: " + sentiment + "\nUser message: " + message.text + "\nRespond with empathy."
 
-        response = client.models.generate_content(
-            model="gemini-2.5-flash",
-            contents=prompt
-        )
+    response = client.models.generate_content(
+        model="gemini-2.5-flash",
+        contents=prompt
+    )
 
-        await save_to_supabase(message.text, response.text, sentiment, score)
+    await save_to_supabase(message.text, response.text, sentiment, score)
 
-        return {
-            "response": response.text,
-            "sentiment": sentiment,
-            "confidence": score
-        }
-    except Exception as e:
-        print(f"FULL ERROR: {e}")
-        import traceback
-        traceback.print_exc()
-        raise
+    return {
+        "response": response.text,
+        "sentiment": sentiment,
+        "confidence": score
+    }
