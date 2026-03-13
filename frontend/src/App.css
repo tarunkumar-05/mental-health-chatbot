@@ -43,6 +43,9 @@ html, body {
   gap: 12px;
   border-bottom: 1px solid #333;
   flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
 .header-icon {
@@ -138,6 +141,9 @@ html, body {
   background: #212121;
   border-top: 1px solid #333;
   flex-shrink: 0;
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
 }
 
 .input-area input {
