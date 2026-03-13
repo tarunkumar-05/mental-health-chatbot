@@ -5,26 +5,29 @@
   font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
-body {
+html, body {
+  height: 100%;
   background: #212121;
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  overflow: hidden;
+}
+
+#root {
+  height: 100%;
 }
 
 .app {
   width: 100%;
-  min-height: 100vh;
+  height: 100dvh;
   display: flex;
   align-items: center;
   justify-content: center;
+  background: #212121;
 }
 
 .chat-container {
   width: 100%;
   max-width: 750px;
-  height: 100vh;
+  height: 100dvh;
   background: #212121;
   display: flex;
   flex-direction: column;
@@ -34,10 +37,12 @@ body {
 .chat-header {
   background: #212121;
   padding: 16px 24px;
+  padding-top: max(16px, env(safe-area-inset-top));
   display: flex;
   align-items: center;
   gap: 12px;
   border-bottom: 1px solid #333;
+  flex-shrink: 0;
 }
 
 .header-icon {
@@ -62,6 +67,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 20px;
+  min-height: 0;
 }
 
 .messages::-webkit-scrollbar {
@@ -125,10 +131,13 @@ body {
 }
 
 .input-area {
-  padding: 16px 24px 24px;
+  padding: 16px 24px;
+  padding-bottom: max(24px, env(safe-area-inset-bottom));
   display: flex;
   gap: 10px;
   background: #212121;
+  border-top: 1px solid #333;
+  flex-shrink: 0;
 }
 
 .input-area input {
@@ -163,6 +172,7 @@ body {
   font-weight: 600;
   transition: background 0.2s;
   font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  flex-shrink: 0;
 }
 
 .input-area button:hover {
@@ -193,7 +203,7 @@ body {
 /* Auth Styles */
 .auth-container {
   width: 100%;
-  min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -224,10 +234,17 @@ body {
   color: #ffffff;
 }
 
-.auth-box p {
+.auth-subtitle {
   color: #888;
   font-size: 14px;
   margin-top: -10px;
+}
+
+.auth-divider {
+  width: 100%;
+  height: 1px;
+  background: #444;
+  margin: 8px 0;
 }
 
 .auth-box h2 {
@@ -295,32 +312,16 @@ body {
 .auth-switch span:hover {
   text-decoration: underline;
 }
-.auth-subtitle {
-  color: #888;
-  font-size: 14px;
-  margin-top: -10px;
-}
 
-.auth-divider {
-  width: 100%;
-  height: 1px;
-  background: #444;
-  margin: 8px 0;
-}
 /* Mobile Responsive */
 @media (max-width: 768px) {
-  .chat-container {
-    height: 100vh;
-    border-radius: 0;
-    max-width: 100%;
-  }
-
   .chat-header {
     padding: 12px 16px;
+    padding-top: max(12px, env(safe-area-inset-top));
   }
 
   .chat-header h1 {
-    font-size: 18px;
+    font-size: 17px;
   }
 
   .messages {
@@ -338,7 +339,8 @@ body {
   }
 
   .input-area {
-    padding: 12px 16px 20px;
+    padding: 12px 16px;
+    padding-bottom: max(16px, env(safe-area-inset-bottom));
     gap: 8px;
   }
 
@@ -354,16 +356,6 @@ body {
 
   .auth-box {
     padding: 30px 24px;
-  }
-
-  .auth-box h1 {
-    font-size: 22px;
-  }
-}
-
-@media (max-width: 480px) {
-  .chat-header h1 {
-    font-size: 16px;
   }
 
   .logout-btn {
