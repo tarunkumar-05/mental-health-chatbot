@@ -1,8 +1,11 @@
 import { useState, useRef, useEffect } from "react";
 import axios from "axios";
+import { supabase } from "./supabase";
+import Auth from "./Auth";
 import "./App.css";
 
 function App() {
+  const [session, setSession] = useState(null);
   const [messages, setMessages] = useState([
     {
       sender: "bot",
@@ -12,6 +15,15 @@ function App() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef(null);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+    });
+    supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+  }, []);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -47,14 +59,26 @@ function App() {
     if (e.key === "Enter") sendMessage();
   };
 
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+  };
+
+  if (!session) {
+    return <Auth />;
+  }
+
   return (
     <div className="app">
       <div className="chat-container">
         <div className="chat-header">
           <div className="header-icon">💙</div>
-          <div>
+          <div style={{flex: 1}}>
             <h1>MindEase</h1>
             <p>Your mental health companion</p>
+          </div>
+          <div>
+            <p style={{fontSize: "12px", opacity: 0.8}}>{session.user.email}</p>
+            <button onClick={handleLogout} className="logout-btn">Logout</button>
           </div>
         </div>
         <div className="messages">
