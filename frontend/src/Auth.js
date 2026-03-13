@@ -32,33 +32,40 @@ function Auth() {
     setLoading(false);
   };
 
+  const handleKeyPress = (e) => {
+    if (e.key === "Enter") handleAuth();
+  };
+
   return (
     <div className="auth-container">
       <div className="auth-box">
-        <div className="auth-icon">💙</div>
+        <div className="auth-icon">🧠</div>
         <h1>MindEase</h1>
-        <p>Your mental health companion</p>
-        <h2>{isLogin ? "Welcome Back!" : "Create Account"}</h2>
+        <p className="auth-subtitle">Your mental health companion</p>
+        <div className="auth-divider" />
+        <h2>{isLogin ? "Welcome back" : "Create account"}</h2>
         <input
           type="email"
-          placeholder="Email"
+          placeholder="Email address"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          onKeyPress={handleKeyPress}
         />
         <input
           type="password"
           placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          onKeyPress={handleKeyPress}
         />
         {message && <p className="auth-message">{message}</p>}
         <button onClick={handleAuth} disabled={loading}>
-          {loading ? "Please wait..." : isLogin ? "Login" : "Sign Up"}
+          {loading ? "Please wait..." : isLogin ? "Continue" : "Create account"}
         </button>
         <p className="auth-switch">
           {isLogin ? "Don't have an account?" : "Already have an account?"}
           <span onClick={() => setIsLogin(!isLogin)}>
-            {isLogin ? " Sign Up" : " Login"}
+            {isLogin ? " Sign up" : " Log in"}
           </span>
         </p>
       </div>
