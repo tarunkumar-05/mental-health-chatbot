@@ -71,33 +71,35 @@ function App() {
     <div className="app">
       <div className="chat-container">
         <div className="chat-header">
-          <div className="header-icon">💙</div>
+          <div className="header-icon">🧠</div>
           <div style={{flex: 1}}>
             <h1>MindEase</h1>
             <p>Your mental health companion</p>
           </div>
           <div>
-            <p style={{fontSize: "12px", opacity: 0.8}}>{session.user.email}</p>
+            <p style={{fontSize: "12px", color: "#888"}}>{session.user.email}</p>
             <button onClick={handleLogout} className="logout-btn">Logout</button>
           </div>
         </div>
-        <div className="messages">
-          {messages.map((msg, i) => (
-            <div key={i} className={`message ${msg.sender}`}>
-              <div className="bubble">{msg.text}</div>
-              {msg.sentiment && (
-                <div className="sentiment">
-                  {msg.sentiment === "NEGATIVE" ? "😔" : "😊"} {msg.sentiment} ({msg.confidence}%)
-                </div>
-              )}
-            </div>
-          ))}
-          {loading && (
-            <div className="message bot">
-              <div className="bubble typing">typing...</div>
-            </div>
-          )}
-          <div ref={messagesEndRef} />
+        <div className="messages-wrapper">
+          <div className="messages">
+            {messages.map((msg, i) => (
+              <div key={i} className={`message ${msg.sender}`}>
+                <div className="bubble">{msg.text}</div>
+                {msg.sentiment && (
+                  <div className="sentiment">
+                    {msg.sentiment === "NEGATIVE" ? "😔" : "😊"} {msg.sentiment} ({msg.confidence}%)
+                  </div>
+                )}
+              </div>
+            ))}
+            {loading && (
+              <div className="message bot">
+                <div className="bubble typing">typing...</div>
+              </div>
+            )}
+            <div ref={messagesEndRef} />
+          </div>
         </div>
         <div className="input-area">
           <input
