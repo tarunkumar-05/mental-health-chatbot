@@ -15,6 +15,7 @@ function App() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef(null);
+  const inputRef = useRef(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -35,6 +36,7 @@ function App() {
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
     setLoading(true);
+    inputRef.current?.blur();
     try {
       const res = await axios.post("https://mental-health-chatbot-q8i3.onrender.com/chat", {
         text: input,
@@ -71,15 +73,20 @@ function App() {
     <div className="chat-container">
       <div className="chat-header">
         <div className="header-icon">🧠</div>
-        <div style={{flex: 1}}>
+        <div style={{ flex: 1 }}>
           <h1>MindEase</h1>
           <p>Your mental health companion</p>
         </div>
-        <div>
-          <p style={{fontSize: "12px", color: "#888"}}>{session.user.email}</p>
-          <button onClick={handleLogout} className="logout-btn">Logout</button>
+        <div style={{ textAlign: "right" }}>
+          <p style={{ fontSize: "11px", color: "#888", marginBottom: "4px" }}>
+            {session.user.email}
+          </p>
+          <button onClick={handleLogout} className="logout-btn">
+            Logout
+          </button>
         </div>
       </div>
+
       <div className="messages-wrapper">
         <div className="messages">
           {messages.map((msg, i) => (
@@ -100,8 +107,10 @@ function App() {
           <div ref={messagesEndRef} />
         </div>
       </div>
+
       <div className="input-area">
         <input
+          ref={inputRef}
           type="text"
           placeholder="Share how you're feeling..."
           value={input}
